@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../models/expense_model.dart';
 
 class AddExpenseScreen extends StatefulWidget {
@@ -20,7 +21,7 @@ class _AddExpenseState extends State<AddExpenseScreen> {
       context: context,
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
-      initialDate: _selectedDate == null ? DateTime.now() : _selectedDate,
+      initialDate: _selectedDate ?? DateTime.now(),
     );
 
     if (pickedDate != null) {
@@ -36,13 +37,6 @@ class _AddExpenseState extends State<AddExpenseScreen> {
     if ((_formKey.currentState?.validate() ?? false) && _selectedDate != null) {
       final title = _titleController.text;
       final amount = double.parse(_amountController.text);
-      // print("Title:  $title , Amount: $amount, Date: $_selectedDate");
-
-      // final newExpense = {
-      //   "title": title,
-      //   "amount": amount,
-      //   "date": _selectedDate,
-      // };
 
       final newExpense = ExpenseModel(
         title: title,
@@ -64,71 +58,101 @@ class _AddExpenseState extends State<AddExpenseScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(title: Text("Add Expense")),
-      body: Form(
-        key: _formKey,
-        child: Column(
-          children: [
-            TextFormField(
-              controller: _titleController,
-              decoration: InputDecoration(labelText: "Title"),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return "Title is required";
-                }
-                return null;
-              },
-            ),
-            TextFormField(
-              controller: _amountController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(labelText: "Amount"),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return "Amount is required";
-                }
-                if (double.tryParse(value) == null) {
-                  return "Enter a number";
-                }
-                return null;
-              },
-            ),
-            Text(
-              _selectedDate == null
-                  ? "No Date chosen"
-                  : "Picked Date: ${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}",
-            ),
-            TextButton(
-              onPressed: () => showDatepicker(),
-              child: Text("Choose Date"),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton(
-                  onPressed: () => submitForm(),
-                  child: Text("Add Expense"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.indigoAccent,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0),
+      appBar: AppBar(title: const Text("Add Expense")),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextFormField(
+                controller: _titleController,
+                decoration: const InputDecoration(
+                  labelText: "Title",
+                  prefixIcon: Icon(Icons.title),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "Title is required";
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _amountController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: "Amount",
+                  prefixIcon: Icon(Icons.attach_money),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "Amount is required";
+                  }
+                  if (double.tryParse(value) == null) {
+                    return "Enter a number";
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              InkWell(
+                onTap: showDatepicker,
+                borderRadius: BorderRadius.circular(12),
+                child: InputDecorator(
+                  decoration: const InputDecoration(
+                    labelText: "Date",
+                    prefixIcon: Icon(Icons.calendar_today),
+                  ),
+                  child: Text(
+                    _selectedDate == null
+                        ? "Choose a date"
+                        : DateFormat("MMM d, y").format(_selectedDate!),
+                    style: TextStyle(
+                      color: _selectedDate == null ? cs.outline : null,
+                      fontSize: 16,
                     ),
                   ),
                 ),
-                SizedBox(width: 15.0),
-                ElevatedButton(
-                  onPressed: () => resetForm(),
-                  child: Text("Reset"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.white,
+              ),
+              const SizedBox(height: 32),
+              Row(
+                children: [
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: submitForm,
+                      icon: const Icon(Icons.check),
+                      label: const Text("Add Expense"),
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                  const SizedBox(width: 12),
+                  OutlinedButton(
+                    onPressed: resetForm,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: cs.error,
+                      side: BorderSide(color: cs.error),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 14, horizontal: 24),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text("Reset"),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
